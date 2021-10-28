@@ -45,7 +45,7 @@ class YCSB(object):
             if result:
                 commit_num += 1
             else:
-                abort_num += 0
+                abort_num += 1
 
         msg = " ".join([config.peer_name, str(commit_num), str(abort_num), str(bench_time), str(commit_num/bench_time)]) + "\n"
 
