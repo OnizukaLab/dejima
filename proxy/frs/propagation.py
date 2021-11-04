@@ -18,10 +18,11 @@ class FRSPropagation(object):
         global_xid = params['xid']
         if global_xid in config.tx_dict:
             tx = config.tx_dict[global_xid]
+            locked_flag = True
         else:
             tx = Tx(global_xid)
             config.tx_dict[global_xid] = tx
-            # TODO: ロック範囲を外れたピアまでpropagationが来た時用の追加ロック
+            locked_flag = False
 
         if tx.propagation_cnt == 0:
             tx.propagation_cnt += 1
@@ -29,14 +30,17 @@ class FRSPropagation(object):
             resp.text = json.dumps({"result": "Nak"})
             print("A propagation loop detected")
             return
-
+        
         # update dejima table and propagate to base tables
         try:
             stmt = dejimautils.convert_to_sql_from_json(params['delta'])
+            # additional lock for peers out of lock scope
+            if not locked_flag:
+                for delete in params['delta']["deletions"]:
+                    tx.cur.execute("SELECT * FROM bt WHERE id={} FOR UPDATE NOWAIT".format(delete['id']))
             tx.cur.execute(stmt)
         except Exception as e:
-            print("DB ERROR: ", e)
-            resp.text = json.dumps({"result": "Nak"})
+            resp.text = json.dumps({"result": "Nak", "info": e})
             return
 
         try: 
