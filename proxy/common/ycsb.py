@@ -11,14 +11,14 @@ class YCSB(object):
     def on_get(self, req, resp):
         # get params
         params = req.params
-        if "bench_time" in params.keys():
-            bench_time = int(params['bench_time'])
-        else:
-            bench_time = 60
-        if "method" in params.keys():
-            METHOD = params['method']
-        else:
-            METHOD = "frs"
+        param_keys = ["bench_time", "method"]
+        for key in param_keys:
+            if not key in params.keys():
+                msg = "Invalid parameters"
+                resp.text = msg
+                return
+        bench_time = int(params['bench_time'])
+        METHOD = params['method']
             
         commit_num = 0
         abort_num = 0
@@ -29,15 +29,14 @@ class YCSB(object):
         print("benchmark start")
         random.seed()
         while (time.time()-start_time < bench_time):
-            # TODO: choose method
-
             # do YCSB
             if METHOD == "frs":
                 result = doYCSB_frs()
-                METHOD = "2pl"
             elif METHOD == "2pl":
                 result = doYCSB_2pl()
-                METHOD = "frs"
+            elif METHOD == "hybrid":
+                # TODO: choose method
+                result = doYCSB_frs()
             else:
                 resp.text = "invalid method"
                 return
@@ -49,5 +48,6 @@ class YCSB(object):
 
         msg = " ".join([config.peer_name, str(commit_num), str(abort_num), str(bench_time), str(commit_num/bench_time)]) + "\n"
 
+        print("benchmark finished")
         resp.text = msg
         return

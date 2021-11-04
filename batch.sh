@@ -1,3 +1,6 @@
+# TODO
+# This script doesn't work properly
+# -----
 # default parameter
 # Skew facotr = 0.8
 # Prop Rate = 90%
