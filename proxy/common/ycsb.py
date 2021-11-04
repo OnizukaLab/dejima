@@ -20,33 +20,122 @@ class YCSB(object):
         bench_time = int(params['bench_time'])
         METHOD = params['method']
             
+        # benchmark
         commit_num = 0
         abort_num = 0
-
         start_time = time.time()
-
-        # benchmark
         print("benchmark start")
         random.seed()
-        while (time.time()-start_time < bench_time):
-            # do YCSB
+
+        # frs & 2pl
+        if METHOD == "frs" or METHOD == "2pl":
             if METHOD == "frs":
-                result = doYCSB_frs()
-            elif METHOD == "2pl":
-                result = doYCSB_2pl()
-            elif METHOD == "hybrid":
-                # TODO: choose method
-                result = doYCSB_frs()
+                doYCSB = doYCSB_frs
             else:
-                resp.text = "invalid method"
-                return
+                doYCSB = doYCSB_2pl
 
-            if result:
-                commit_num += 1
-            else:
-                abort_num += 1
+            while (time.time()-start_time < bench_time):
+                result = doYCSB()
+                if result:
+                    commit_num += 1
+                else:
+                    abort_num += 1
 
-        msg = " ".join([config.peer_name, str(commit_num), str(abort_num), str(bench_time), str(commit_num/bench_time)]) + "\n"
+        # hybrid
+        elif METHOD == "hybrid":
+            current_method = "2pl"
+            doYCSB = doYCSB_2pl
+            check_time = 30
+            check_interval = 300
+            # determine first check timing
+            next_check = random.randint(0,check_interval - check_time * 2)
+            result_per_epoch = [{'commit': 0, 'abort': 0}]
+            epoch = 0
+            epoch_time = 100
+            next_epoch_start_time = epoch_time
+
+            temp_commit = {'before': {'commit': 0, 'abort': 0}, 'after': {'commit': 0, 'abort': 0}}
+            temp_changed_mode_flag = False
+
+            current_time = time.time() - start_time
+            while (current_time < bench_time):
+                current_time = time.time() - start_time
+
+                # epoch update
+                if current_time > next_epoch_start_time:
+                    next_epoch_start_time += epoch_time
+                    epoch += 1
+                    result_per_epoch.append({'commit': 0, 'abort': 0})
+                # normal mode
+                if current_time < next_check:
+                    result = doYCSB()
+                    if result:
+                        commit_num += 1
+                    else:
+                        abort_num += 1
+
+                # check mode
+                # before
+                elif current_time < next_check + check_time:
+                    result = doYCSB()
+                    if result:
+                        temp_commit['before']['commit'] += 1
+                        commit_num += 1
+                    else:
+                        temp_commit['before']['abort'] += 1
+                        abort_num += 1
+                # after
+                elif current_time < next_check + check_time * 2:
+                    # change method if this is first time
+                    if not temp_changed_mode_flag:
+                        temp_changed_mode_flag = True
+                        if current_method == "2pl":
+                            current_method = "frs"
+                            doYCSB = doYCSB_frs
+                        else:
+                            current_method = "2pl"
+                            doYCSB = doYCSB_2pl
+
+                    result = doYCSB()
+                    if result:
+                        temp_commit['after']['commit'] += 1
+                        commit_num += 1
+                    else:
+                        temp_commit['after']['abort'] += 1
+                        abort_num += 1
+
+                # return to normal, don't execute Tx
+                else:
+                    next_check += check_interval
+                    if temp_commit['after']['commit'] < temp_commit['before']['commit']:
+                        if current_method == "2pl":
+                            current_method = "frs"
+                            doYCSB = doYCSB_frs
+                        else:
+                            current_method = "2pl"
+                            doYCSB = doYCSB_2pl
+                        print("method changed!")
+                    temp_changed_mode_flag = False
+                    temp_commit = {'before': {'commit': 0, 'abort': 0}, 'after': {'commit': 0, 'abort': 0}}
+                    continue
+
+                if result:
+                    result_per_epoch[epoch]['commit'] += 1
+                else:
+                    result_per_epoch[epoch]['abort'] += 1
+
+        # invalid method
+        else:
+            resp.text = "invalid method"
+            return
+
+        msg = " ".join([config.peer_name, str(commit_num), str(abort_num)])
+        if METHOD == "hybrid":
+            for result in result_per_epoch:
+                msg += " " + str(result['commit'])
+            for result in result_per_epoch:
+                msg += " " + str(result['abort'])
+        msg += "\n"
 
         print("benchmark finished")
         resp.text = msg
