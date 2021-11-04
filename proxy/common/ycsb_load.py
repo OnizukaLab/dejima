@@ -11,14 +11,16 @@ class YCSBLoad(object):
     def on_get(self, req, resp):
         # get params
         params = req.params
-        if "start_id" in params.keys():
-            start_id = int(params['start_id'])
-        else:
-            start_id = 1
-        if "record_num" in params.keys():
-            record_num = int(params['record_num'])
-        else:
-            record_num = 1000
+        param_keys = ["start_id", "record_num", "step"]
+        for key in param_keys:
+            if not key in params.keys():
+                msg = "Invalid parameters"
+                resp.text = msg
+                return
+
+        start_id = int(params['start_id'])
+        record_num = int(params['record_num'])
+        step = int(params['step'])
             
         # load
         print("load start")
@@ -29,7 +31,7 @@ class YCSBLoad(object):
         config.tx_dict[global_xid] = tx
 
         # workload
-        stmt = ycsbutils.get_stmt_for_load(start_id, record_num)
+        stmt = ycsbutils.get_stmt_for_load(start_id, record_num, step)
 
         # lock all dbs
         result = dejimautils.lock_request(['dummy'], global_xid)
@@ -37,8 +39,9 @@ class YCSBLoad(object):
         # execution
         try:
             tx.cur.execute(stmt)
-        except:
+        except Exception as e:
             # abort during local execution
+            print(e)
             dejimautils.release_lock_request(global_xid) 
             tx.abort()
             del config.tx_dict[global_xid]

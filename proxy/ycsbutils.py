@@ -8,7 +8,7 @@ COND_N = 10
 def randomname(n):
    return ''.join(random.choices(string.ascii_letters + string.digits, k=n))
 
-def get_stmt_for_load(start_id, record_num):
+def get_stmt_for_load(start_id, record_num, step):
     # prepare cols name
     col_names = ['ID']
     for i in range(COL_N):
@@ -20,7 +20,7 @@ def get_stmt_for_load(start_id, record_num):
     # create bulk insert statement
     stmt = "INSERT INTO bt (" + ",".join(col_names) + ") VALUES "
     records = []
-    for i in range(start_id, start_id + record_num):
+    for i in range(start_id, start_id + record_num * step, step):
         cols = []
         conds = []
         for _ in range(COL_N):
