@@ -38,7 +38,7 @@ class TPLPropagation(object):
                 tx.cur.execute(lock_stmt)
             tx.cur.execute(stmt)
         except Exception as e:
-            resp.text = json.dumps({"result": "Nak", "info": e})
+            resp.text = json.dumps({"result": "Nak", "info": e.__class__.__name__})
             return
 
         try: 
