@@ -23,6 +23,10 @@ class YCSB(object):
         # benchmark
         commit_num = 0
         abort_num = 0
+        result_per_epoch = [{'commit': 0, 'abort': 0}]
+        epoch = 0
+        epoch_time = 100
+        next_epoch_start_time = epoch_time
         start_time = time.time()
         print("benchmark start")
         random.seed()
@@ -34,11 +38,21 @@ class YCSB(object):
             else:
                 doYCSB = doYCSB_2pl
 
-            while (time.time()-start_time < bench_time):
+            current_time = time.time() - start_time
+            while (current_time < bench_time):
+                current_time = time.time() - start_time
+                # epoch update
+                if current_time > next_epoch_start_time:
+                    next_epoch_start_time += epoch_time
+                    epoch += 1
+                    result_per_epoch.append({'commit': 0, 'abort': 0})
+
                 result = doYCSB()
                 if result:
                     commit_num += 1
+                    result_per_epoch[epoch]['commit'] += 1
                 else:
+                    result_per_epoch[epoch]['abort'] += 1
                     abort_num += 1
 
         # hybrid
@@ -49,10 +63,6 @@ class YCSB(object):
             check_interval = 300
             # determine first check timing
             next_check = random.randint(0,check_interval - check_time * 2)
-            result_per_epoch = [{'commit': 0, 'abort': 0}]
-            epoch = 0
-            epoch_time = 100
-            next_epoch_start_time = epoch_time
 
             temp_commit = {'before': {'commit': 0, 'abort': 0}, 'after': {'commit': 0, 'abort': 0}}
             temp_changed_mode_flag = False
@@ -114,7 +124,12 @@ class YCSB(object):
                         else:
                             current_method = "2pl"
                             doYCSB = doYCSB_2pl
-                        print("method changed!")
+                    else:
+                        if current_method == "2pl":
+                            print("{} {}: FRS -> 2PL".format(config.peer_name, current_time))
+                        else:
+                            print("{} {}: S2PL -> FRS".format(config.peer_name, current_time))
+
                     temp_changed_mode_flag = False
                     temp_commit = {'before': {'commit': 0, 'abort': 0}, 'after': {'commit': 0, 'abort': 0}}
                     continue
@@ -130,11 +145,10 @@ class YCSB(object):
             return
 
         msg = " ".join([config.peer_name, str(commit_num), str(abort_num)])
-        if METHOD == "hybrid":
-            for result in result_per_epoch:
-                msg += " " + str(result['commit'])
-            for result in result_per_epoch:
-                msg += " " + str(result['abort'])
+        for result in result_per_epoch:
+            msg += " " + str(result['commit'])
+        for result in result_per_epoch:
+            msg += " " + str(result['abort'])
         msg += "\n"
 
         print("benchmark finished")
