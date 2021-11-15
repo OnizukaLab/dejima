@@ -2,7 +2,6 @@ import random
 from graphviz import Graph
 import json
 import os
-import datetime
 import sys
 
 if len(sys.argv) != 4:
@@ -40,11 +39,13 @@ for i in range(1, cond_n):
     legend.edge('cond{}'.format(i), 'cond{}'.format(i+1), style='invis')
 
 # main
-dt_now = datetime.datetime.now()
 if benchmark == "YCSB":
-    output_dir_path = 'YCSB_N{}_B{}_'.format(N, B) + dt_now.strftime('%Y%m%d%H%M%S')
+    output_dir_path = 'YCSB_N{}_B{}'.format(N, B)
 elif benchmark == "TPCC":
-    output_dir_path = 'TPCC_N{}_B{}_'.format(N, B) + dt_now.strftime('%Y%m%d%H%M%S')
+    output_dir_path = 'TPCC_N{}_B{}'.format(N, B)
+if os.path.isdir(output_dir_path):
+    print("A same environment has already been created")
+    exit()
 os.mkdir(output_dir_path)
 
 config = {'dejima_table': {}, 'base_table': {}, 'peer_address': {}}
