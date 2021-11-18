@@ -71,7 +71,7 @@ for i in range(1,N+1):
             new_f.write(f.read())
     G.node(str(i))
     config['base_table']['Peer{}'.format(i)] = ['bt']
-    config['peer_address']['Peer{}'.format(i)] = '172.31.17.{}:8000'.format(i)
+    config['peer_address']['Peer{}'.format(i)] = '172.31.33.{}:8000'.format(i)
     if not i == 1:
         cond = random.randint(0, cond_n - 1)
         target_node = str(random.randint(1,i-1))
