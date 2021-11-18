@@ -118,7 +118,7 @@ db['cap_add'] = ['NET_ADMIN']
 proxy = yml['services'][peer_name_lc+'-proxy'] = {}
 proxy['image'] = 'ekayim/dejima-proxy:latest'
 proxy['container_name'] = peer_name_uc+'-proxy'
-proxy['command'] = 'gunicorn -b 0.0.0.0:8000 --threads {} server:app'.format(N*3+5)
+proxy['command'] = 'gunicorn -b 0.0.0.0:8000 --threads {} server:app'.format(N+5)
 proxy['volumes'] = ['./proxy:/code']
 proxy['ports'] = ['{}:8000'.format(8000)]
 proxy['depends_on'] = ['{}-db'.format(peer_name_lc)]
