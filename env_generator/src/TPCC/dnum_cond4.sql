@@ -68,8 +68,8 @@ BEGIN
     IF NOT EXISTS (SELECT * FROM information_schema.tables WHERE table_name = '__tmp_delta_ins_customer_for_dnum' OR table_name = '__tmp_delta_del_customer_for_dnum')
     THEN
         -- RAISE LOG 'execute procedure customer_materialization_for_dnum';
-        CREATE TEMPORARY TABLE __tmp_delta_ins_customer_for_dnum ( LIKE public.customer ) WITH OIDS ON COMMIT DROP;
-        CREATE TEMPORARY TABLE __tmp_delta_del_customer_for_dnum ( LIKE public.customer ) WITH OIDS ON COMMIT DROP;
+        CREATE TEMPORARY TABLE IF NOT EXISTS __tmp_delta_ins_customer_for_dnum ( LIKE public.customer ) WITH OIDS ON COMMIT DELETE ROWS;
+        CREATE TEMPORARY TABLE IF NOT EXISTS __tmp_delta_del_customer_for_dnum ( LIKE public.customer ) WITH OIDS ON COMMIT DELETE ROWS;
         
     END IF;
     RETURN NULL;
@@ -399,13 +399,13 @@ AS $$
     IF NOT EXISTS (SELECT * FROM information_schema.tables WHERE table_name = '__tmp_delta_ins_dnum' OR table_name = '__tmp_delta_del_dnum')
     THEN
         -- RAISE LOG 'execute procedure dnum_materialization';
-        CREATE TEMPORARY TABLE __tmp_delta_ins_dnum ( LIKE public.dnum ) WITH OIDS ON COMMIT DROP;
+        CREATE TEMPORARY TABLE IF NOT EXISTS __tmp_delta_ins_dnum ( LIKE public.dnum ) WITH OIDS ON COMMIT DELETE ROWS;
         CREATE CONSTRAINT TRIGGER __tmp_dnum_trigger_delta_action_ins
         AFTER INSERT OR UPDATE OR DELETE ON 
             __tmp_delta_ins_dnum DEFERRABLE INITIALLY DEFERRED 
             FOR EACH ROW EXECUTE PROCEDURE public.dnum_delta_action();
 
-        CREATE TEMPORARY TABLE __tmp_delta_del_dnum ( LIKE public.dnum ) WITH OIDS ON COMMIT DROP;
+        CREATE TEMPORARY TABLE IF NOT EXISTS __tmp_delta_del_dnum ( LIKE public.dnum ) WITH OIDS ON COMMIT DELETE ROWS;
         CREATE CONSTRAINT TRIGGER __tmp_dnum_trigger_delta_action_del
         AFTER INSERT OR UPDATE OR DELETE ON 
             __tmp_delta_del_dnum DEFERRABLE INITIALLY DEFERRED 
@@ -492,4 +492,24 @@ AS $$
     RETURN true;
   END;
 $$;
+
+CREATE OR REPLACE FUNCTION public.clean_dummy_dnum ()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+  DECLARE
+  xid int;
+  BEGIN
+    xid := (SELECT txid_current());
+    DELETE FROM public.__dummy__dnum_detected_deletions as t where t.txid = xid;
+    DELETE FROM public.__dummy__dnum_detected_insertions as t where t.txid = xid;
+    RAISE LOG 'clean __dummy__dnum_detected_deletions/insertions';
+    RETURN NULL;
+  END;
+$$;
+
+CREATE CONSTRAINT TRIGGER __zzz_clean_dnum
+    AFTER INSERT OR UPDATE OR DELETE ON
+    public.customer DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.clean_dummy_dnum();
 

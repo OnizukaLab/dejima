@@ -38,11 +38,11 @@ app.add_route("/zipf", Zipf())
 from common.ycsb_load import YCSBLoad
 app.add_route("/load", YCSBLoad())
 
-from frs.tpcc_load_local import TPCCLoad_Local
-app.add_route("/localload_TPCC", TPCCLoad_Local())
+from common.tpcc_load_local import TPCCLoadLocal
+app.add_route("/localload_TPCC", TPCCLoadLocal())
 
-from frs.tpcc_load_customer import TPCCLoad_Customer
-app.add_route("/customerload_TPCC", TPCCLoad_Customer())
+from common.tpcc_load_customer import TPCCLoadCustomer
+app.add_route("/customerload_TPCC", TPCCLoadCustomer())
 
 if __name__ == "__main__":
     from wsgiref.simple_server import *

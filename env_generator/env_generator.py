@@ -70,7 +70,10 @@ for i in range(1,N+1):
         with open(output_dir_path + "/Peer{}".format(i) + "/00_init.sql", mode="w") as new_f:
             new_f.write(f.read())
     G.node(str(i))
-    config['base_table']['Peer{}'.format(i)] = ['bt']
+    if benchmark == "YCSB":
+        config['base_table']['Peer{}'.format(i)] = ['bt']
+    elif benchmark == "TPCC":
+        config['base_table']['Peer{}'.format(i)] = ['customer']
     config['peer_address']['Peer{}'.format(i)] = 'Peer{}-proxy:8000'.format(i)
     if not i == 1:
         cond = random.randint(0, cond_n - 1)

@@ -1,31 +1,27 @@
 import json
 import dejimautils
-import ycsbutils
-import time
+import tpccutils
 import config
-import sqlparse
-import random
 from transaction import Tx
 
-class YCSBLoad(object):
+class TPCCLoadCustomer(object):
     def __init__(self):
         pass
 
     def on_get(self, req, resp):
-        # get params
         params = req.params
-        if "start_id" in params.keys():
-            start_id = int(params['start_id'])
+        param_keys = ["peer_num"]
+        for key in param_keys:
+            if not key in params.keys():
+                msg = "Invalid parameters"
+                resp.text = msg
+                return
+
+        peer_num = int(params['peer_num'])
+        if peer_num % 10 != 0:
+            warehouse_num = peer_num // 10 + 1
         else:
-            start_id = 1
-        if "record_num" in params.keys():
-            record_num = int(params['record_num'])
-        else:
-            record_num = 1000
-            
-        # prepare other variables (dt_list, bt_list)
-        dt_list = [dt for dt in config.dejima_config_dict['dejima_table'].keys() if config.peer_name in config.dejima_config_dict['dejima_table'][dt]]
-        bt_list = config.dejima_config_dict['base_table'][config.peer_name]
+            warehouse_num = int(peer_num / 10)
 
         # load
         print("load start")
@@ -35,17 +31,23 @@ class YCSBLoad(object):
         tx = Tx(global_xid)
         config.tx_dict[global_xid] = tx
 
-        # workload
-        stmt = ycsbutils.get_stmt_for_load(start_id, record_num)
-
         # lock all dbs
         result = dejimautils.lock_request(['dummy'], global_xid)
 
         # execution
         try:
-            tx.cur.execute(stmt)
-        except:
+            w_id = int(config.peer_name.strip("Peer")) // 10 + 1
+            d_id = int(config.peer_name.strip("Peer")) % 10
+            c_stmt, h_stmt = tpccutils.get_loadstmt_for_customer_history(w_id, d_id)
+            tx.cur.execute(c_stmt)
+            tx.cur.execute(h_stmt)
+            o_stmt, ol_stmt, no_stmt = tpccutils.get_loadstmt_for_orders_neworders_orderline(w_id, d_id)
+            tx.cur.execute(o_stmt)
+            tx.cur.execute(ol_stmt)
+            tx.cur.execute(no_stmt)
+        except Exception as e:
             # abort during local execution
+            print(e)
             dejimautils.release_lock_request(global_xid) 
             tx.abort()
             del config.tx_dict[global_xid]
@@ -57,12 +59,12 @@ class YCSBLoad(object):
             tx.cur.execute("SELECT txid_current()")
             local_xid, *_ = tx.cur.fetchone()
             prop_dict = {}
-            for dt in dt_list:
+            for dt in config.dt_list:
                 target_peers = list(config.dejima_config_dict['dejima_table'][dt])
                 target_peers.remove(config.peer_name)
                 if target_peers == []: continue
 
-                for bt in bt_list:
+                for bt in config.bt_list:
                     tx.cur.execute("SELECT {}_propagate_updates_to_{}()".format(bt, dt))
                 tx.cur.execute("SELECT public.{}_get_detected_update_data({})".format(dt, local_xid))
                 delta, *_ = tx.cur.fetchone()
