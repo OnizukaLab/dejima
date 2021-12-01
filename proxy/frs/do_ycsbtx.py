@@ -24,9 +24,12 @@ def doYCSB_frs():
             where_clause = sqlparse.parse(stmt)[0][-1].value
             get_lineage_stmts.append("SELECT lineage FROM bt {} FOR UPDATE NOWAIT".format(where_clause))
     try:
+        miss_flag = True
         lineages = []
         for stmt in lock_stmts_for_read:
             tx.cur.execute(stmt)
+            if tx.cur.fetchone() != None:
+                miss_flag = False
         for stmt in get_lineage_stmts:
             tx.cur.execute(stmt)
             try:
@@ -34,11 +37,18 @@ def doYCSB_frs():
                 lineages.append(lineage)
             except:
                 continue
+        if lineages != []:
+            miss_flag = False
     except:
         # abort during local lock
         tx.abort()
         del config.tx_dict[global_xid]
         return False
+
+    if miss_flag:
+        tx.abort()
+        del config.tx_dict[global_xid]
+        return "miss"
 
     # lock request
     if not lineages == []:

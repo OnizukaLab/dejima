@@ -22,9 +22,12 @@ def doYCSB_2pl():
             where_clause = sqlparse.parse(stmt)[0][-1].value
             lock_stmts.append("SELECT * FROM bt {} FOR UPDATE NOWAIT".format(where_clause))
     try:
+        miss_flag = True
         # lock
         for stmt in lock_stmts:
             tx.cur.execute(stmt)
+            if tx.cur.fetchone() != None:
+                miss_flag = False 
         # execution
         for stmt in stmts:
             tx.cur.execute(stmt)
@@ -33,6 +36,11 @@ def doYCSB_2pl():
         tx.abort()
         del config.tx_dict[global_xid]
         return False
+
+    if miss_flag:
+        tx.abort()
+        del config.tx_dict[global_xid]
+        return "miss"
 
     # propagation
     try:

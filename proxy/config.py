@@ -19,7 +19,7 @@ dt_list = [dt for dt in dejima_config_dict['dejima_table'].keys() if peer_name i
 bt_list = dejima_config_dict['base_table'][peer_name]
 
 # neighbor peers
-neighbor_hop = 4
+neighbor_hop = 20
 target_peers = {peer_name}
 for i in range(neighbor_hop):
     next_target_peers = set()

@@ -23,6 +23,8 @@ class YCSB(object):
         # benchmark
         commit_num = 0
         abort_num = 0
+        miss_num = 0
+        miss_time = 0
         result_per_epoch = [{'commit': 0, 'abort': 0}]
         epoch = 0
         epoch_time = 100
@@ -48,12 +50,15 @@ class YCSB(object):
                     result_per_epoch.append({'commit': 0, 'abort': 0})
 
                 result = doYCSB()
-                if result:
+                if result == True:
                     commit_num += 1
                     result_per_epoch[epoch]['commit'] += 1
-                else:
+                elif result == False:
                     result_per_epoch[epoch]['abort'] += 1
                     abort_num += 1
+                elif result == "miss":
+                    miss_num += 1
+                    miss_time += time.time() - start_time - current_time
 
         # hybrid
         elif METHOD == "hybrid":
@@ -79,21 +84,25 @@ class YCSB(object):
                 # normal mode
                 if current_time < next_check:
                     result = doYCSB()
-                    if result:
+                    if result == True:
                         commit_num += 1
-                    else:
+                    elif result == False:
                         abort_num += 1
+                    elif result == "miss":
+                        miss_num += 1
 
                 # check mode
                 # before
                 elif current_time < next_check + check_time:
                     result = doYCSB()
-                    if result:
+                    if result == True:
                         temp_commit['before']['commit'] += 1
                         commit_num += 1
-                    else:
+                    elif result == False:
                         temp_commit['before']['abort'] += 1
                         abort_num += 1
+                    elif result == "miss":
+                        miss_num += 1
                 # after
                 elif current_time < next_check + check_time * 2:
                     # change method if this is first time
@@ -107,12 +116,14 @@ class YCSB(object):
                             doYCSB = doYCSB_2pl
 
                     result = doYCSB()
-                    if result:
+                    if result == True:
                         temp_commit['after']['commit'] += 1
                         commit_num += 1
-                    else:
+                    elif result == False:
                         temp_commit['after']['abort'] += 1
                         abort_num += 1
+                    elif result == "miss":
+                        miss_num += 1
 
                 # return to normal, don't execute Tx
                 else:
@@ -134,17 +145,19 @@ class YCSB(object):
                     temp_commit = {'before': {'commit': 0, 'abort': 0}, 'after': {'commit': 0, 'abort': 0}}
                     continue
 
-                if result:
+                if result == True:
                     result_per_epoch[epoch]['commit'] += 1
-                else:
+                elif result == False:
                     result_per_epoch[epoch]['abort'] += 1
+                elif result == "miss":
+                    miss_time += time.time() - start_time - current_time
 
         # invalid method
         else:
             resp.text = "invalid method"
             return
 
-        msg = " ".join([config.peer_name, str(commit_num), str(abort_num)])
+        msg = " ".join([config.peer_name, str(commit_num), str(abort_num), str(miss_num), str(bench_time-miss_time)])
         for result in result_per_epoch:
             msg += " " + str(result['commit'])
         for result in result_per_epoch:
