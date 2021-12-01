@@ -36,8 +36,13 @@ class FRSPropagation(object):
             stmt = dejimautils.convert_to_sql_from_json(params['delta'])
             # additional lock for peers out of lock scope
             if not locked_flag:
-                for delete in params['delta']["deletions"]:
-                    tx.cur.execute("SELECT * FROM bt WHERE id={} FOR UPDATE NOWAIT".format(delete['id']))
+                for bt in config.bt_list:
+                    if bt == "customer":
+                        for delete in params['delta']["deletions"]:
+                            tx.cur.execute("SELECT * FROM customer WHERE c_w_id={} AND c_d_id={} AND c_id={} FOR UPDATE NOWAIT".format(delete['c_w_id'], delete['c_d_id'], delete['c_id']))
+                    else:
+                        for delete in params['delta']["deletions"]:
+                            tx.cur.execute("SELECT * FROM bt WHERE id={} FOR UPDATE NOWAIT".format(delete['id']))
             tx.cur.execute(stmt)
         except Exception as e:
             resp.text = json.dumps({"result": "Nak", "info": e.__class__.__name__})

@@ -51,6 +51,7 @@ class TPCCLoadLocal(object):
 
         # termination
         tx.commit()
+        del config.tx_dict[global_xid]
 
         resp.text = "success"
         return

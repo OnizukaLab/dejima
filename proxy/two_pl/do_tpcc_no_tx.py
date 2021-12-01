@@ -42,16 +42,16 @@ def doTPCC_NO_2pl():
     # get local locks and check whether miss or not
     try:
         miss_flag = True
-        tx.cur.execute("SELECT * FROM warehouse WHERE W_ID = {}".format(w_id))
-        tx.cur.execute("SELECT * FROM district WHERE d_w_id = {} AND d_id = {} FOR UPDATE".format(w_id, d_id))
-        tx.cur.execute("SELECT * FROM customer WHERE c_w_id = {} AND c_d_id = {} AND c_id = {} FOR SHARE".format(w_id, d_id, c_id))
+        tx.cur.execute("SELECT * FROM warehouse WHERE W_ID = {} FOR SHARE NOWAIT".format(w_id))
+        tx.cur.execute("SELECT * FROM district WHERE d_w_id = {} AND d_id = {} FOR UPDATE NOWAIT".format(w_id, d_id))
+        tx.cur.execute("SELECT * FROM customer WHERE c_w_id = {} AND c_d_id = {} AND c_id = {} FOR SHARE NOWAIT".format(w_id, d_id, c_id))
         if tx.cur.fetchone() != None:
             miss_flag = False
         for i_id in ol_i_id_list:
             if i_id == None:
                 continue
-            tx.cur.execute("SELECT * FROM item WHERE I_ID = {} FOR SHARE".format(i_id))
-            tx.cur.execute("SELECT * FROM stock WHERE s_i_id = {} AND s_w_id = {} FOR SHARE".format(i_id, w_id))
+            tx.cur.execute("SELECT * FROM item WHERE I_ID = {} FOR SHARE NOWAIT".format(i_id))
+            tx.cur.execute("SELECT * FROM stock WHERE s_i_id = {} AND s_w_id = {} FOR SHARE NOWAIT".format(i_id, w_id))
     except Exception as e:
         # abort during local lock
         tx.abort()

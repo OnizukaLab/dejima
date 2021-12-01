@@ -29,8 +29,13 @@ class TPLPropagation(object):
         # prepare lock stmts
         stmt = dejimautils.convert_to_sql_from_json(params['delta'])
         lock_stmts = []
-        for delete in params['delta']["deletions"]:
-            lock_stmts.append("SELECT * FROM bt WHERE id={} FOR UPDATE NOWAIT".format(delete['id']))
+        for bt in config.bt_list:
+            if bt == "customer":
+                for delete in params['delta']["deletions"]:
+                    lock_stmts.append("SELECT * FROM customer WHERE c_w_id={} AND c_d_id={} AND c_id={} FOR UPDATE NOWAIT".format(delete['c_w_id'], delete['c_d_id'], delete['c_id']))
+            else:
+                for delete in params['delta']["deletions"]:
+                    lock_stmts.append("SELECT * FROM bt WHERE id={} FOR UPDATE NOWAIT".format(delete['id']))
 
         # update dejima table and propagate to base tables
         try:

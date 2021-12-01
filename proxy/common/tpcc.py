@@ -2,7 +2,9 @@ import time
 import config
 import random
 from frs.do_tpcc_no_tx import doTPCC_NO_frs
+from frs.do_tpcc_pay_tx import doTPCC_PAY_frs
 from two_pl.do_tpcc_no_tx import doTPCC_NO_2pl
+from two_pl.do_tpcc_pay_tx import doTPCC_PAY_2pl
 
 class TPCC(object):
     def __init__(self):
@@ -37,12 +39,10 @@ class TPCC(object):
         if METHOD == "frs" or METHOD == "2pl":
             if METHOD == "frs":
                 doTPCC_NO = doTPCC_NO_frs
-                #TODO
-                doTPCC_PAY = doTPCC_NO_frs
+                doTPCC_PAY = doTPCC_PAY_frs
             else:
                 doTPCC_NO = doTPCC_NO_2pl
-                #TODO
-                doTPCC_PAY = doTPCC_NO_frs
+                doTPCC_PAY = doTPCC_PAY_2pl
 
             current_time = time.time() - start_time
             while (current_time < bench_time):
@@ -72,9 +72,7 @@ class TPCC(object):
         elif METHOD == "hybrid":
             current_method = "2pl"
             doTPCC_NO = doTPCC_NO_2pl
-            # TODO
-            # doTPCC_PAY = doTPCC_PAY_2pl
-            doTPCC_PAY = doTPCC_NO_frs
+            doTPCC_PAY = doTPCC_PAY_2pl
             check_time = 30
             check_interval = 300
             # determine first check timing
@@ -128,11 +126,11 @@ class TPCC(object):
                         if current_method == "2pl":
                             current_method = "frs"
                             doTPCC_NO = doTPCC_NO_frs
-                            doTPCC_PAY = doTPCC_NO_frs
+                            doTPCC_PAY = doTPCC_PAY_frs
                         else:
                             current_method = "2pl"
                             doTPCC_NO = doTPCC_NO_2pl
-                            doTPCC_PAY = doTPCC_NO_frs
+                            doTPCC_PAY = doTPCC_PAY_2pl
 
                     result = doTPCC()
                     if result == True:
@@ -151,11 +149,11 @@ class TPCC(object):
                         if current_method == "2pl":
                             current_method = "frs"
                             doTPCC_NO = doTPCC_NO_frs
-                            doTPCC_PAY = doTPCC_NO_frs
+                            doTPCC_PAY = doTPCC_PAY_frs
                         else:
                             current_method = "2pl"
                             doTPCC_NO = doTPCC_NO_2pl
-                            doTPCC_PAY = doTPCC_NO_frs
+                            doTPCC_PAY = doTPCC_PAY_2pl
                     else:
                         if current_method == "2pl":
                             print("{} {}: FRS -> 2PL".format(config.peer_name, current_time))

@@ -7,8 +7,8 @@ WAREHOUSE_NUM = 1
 NAME_TOKENS = ["BAR", "OUGHT", "ABLE", "PRI", "PRES", "ESE", "ANTI", "CALLY", "ATION", "EING"]
 random.seed(0)
 C_FOR_C_LAST = random.randint(0, 255)
-C_FOR_C_ID = random.randint(0, 255)
-C_FOR_OL_I_ID = random.randint(0, 255)
+C_FOR_C_ID = random.randint(0, 1023)
+C_FOR_OL_I_ID = random.randint(0, 8191)
 
 def randomStr(n):
     return ''.join(random.choices(string.ascii_letters + string.digits, k=n))
