@@ -20,7 +20,7 @@ services:
   peer1-proxy:
     cap_add:
     - NET_ADMIN
-    command: gunicorn -b 0.0.0.0:8000 --threads 20 server:app
+    command: gunicorn -b 0.0.0.0:8000 --threads 15 server:app
     container_name: Peer1-proxy
     depends_on:
     - peer1-db
@@ -49,7 +49,7 @@ services:
   peer2-proxy:
     cap_add:
     - NET_ADMIN
-    command: gunicorn -b 0.0.0.0:8000 --threads 20 server:app
+    command: gunicorn -b 0.0.0.0:8000 --threads 15 server:app
     container_name: Peer2-proxy
     depends_on:
     - peer2-db
@@ -78,7 +78,7 @@ services:
   peer3-proxy:
     cap_add:
     - NET_ADMIN
-    command: gunicorn -b 0.0.0.0:8000 --threads 20 server:app
+    command: gunicorn -b 0.0.0.0:8000 --threads 15 server:app
     container_name: Peer3-proxy
     depends_on:
     - peer3-db
@@ -107,7 +107,7 @@ services:
   peer4-proxy:
     cap_add:
     - NET_ADMIN
-    command: gunicorn -b 0.0.0.0:8000 --threads 20 server:app
+    command: gunicorn -b 0.0.0.0:8000 --threads 15 server:app
     container_name: Peer4-proxy
     depends_on:
     - peer4-db
@@ -136,7 +136,7 @@ services:
   peer5-proxy:
     cap_add:
     - NET_ADMIN
-    command: gunicorn -b 0.0.0.0:8000 --threads 20 server:app
+    command: gunicorn -b 0.0.0.0:8000 --threads 15 server:app
     container_name: Peer5-proxy
     depends_on:
     - peer5-db
