@@ -4,17 +4,17 @@
       "Peer2",
       "Peer1"
     ],
-    "d2_3": [
+    "d1_3": [
       "Peer3",
-      "Peer2"
+      "Peer1"
     ],
     "d3_4": [
       "Peer4",
       "Peer3"
     ],
-    "d1_5": [
+    "d4_5": [
       "Peer5",
-      "Peer1"
+      "Peer4"
     ]
   },
   "base_table": {
