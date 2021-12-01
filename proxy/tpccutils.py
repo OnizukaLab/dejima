@@ -7,6 +7,8 @@ WAREHOUSE_NUM = 1
 NAME_TOKENS = ["BAR", "OUGHT", "ABLE", "PRI", "PRES", "ESE", "ANTI", "CALLY", "ATION", "EING"]
 random.seed(0)
 C_FOR_C_LAST = random.randint(0, 255)
+C_FOR_C_ID = random.randint(0, 255)
+C_FOR_OL_I_ID = random.randint(0, 255)
 
 def randomStr(n):
     return ''.join(random.choices(string.ascii_letters + string.digits, k=n))
@@ -18,7 +20,7 @@ def get_last(num):
     return NAME_TOKENS[int(num/100)] + NAME_TOKENS[int(num/10) % 10] + NAME_TOKENS[num % 10]
 
 def get_loadstmt_for_item():
-    random.seed(0)
+    random.seed(1)
     item_loadstmt = "INSERT INTO item (i_id, i_im_id, i_name, i_price, i_data) VALUES "
     items_num = 100000
     records = []
@@ -40,7 +42,7 @@ def get_loadstmt_for_item():
     return item_loadstmt
 
 def get_loadstmt_for_warehouse(w_id):
-    random.seed(0)
+    random.seed(2)
     warehouse_loadstmt = "INSERT INTO warehouse (w_id, w_ytd, w_tax, w_name, w_street_1, w_street_2, w_city, w_state, w_zip) VALUES "
     records = []
 
@@ -86,7 +88,7 @@ def get_loadstmt_for_stock(w_id, start_s_i_id):
     return stock_loadstmt
             
 def get_loadstmt_for_district(w_id):
-    random.seed(0)
+    random.seed(4)
     district_loadstmt = "INSERT INTO district (d_w_id, d_id, d_ytd, d_tax, d_next_o_id, d_name, d_street_1, d_street_2, d_city, d_state, d_zip) VALUES "
     records = []
 
@@ -212,3 +214,13 @@ def get_loadstmt_for_orders_neworders_orderline(w_id, d_id):
     orderline_loadstmt = orderline_loadstmt + ",".join(orderline_records)
     neworder_loadstmt = neworder_loadstmt + ",".join(neworder_records)
     return order_loadstmt, orderline_loadstmt, neworder_loadstmt
+
+def get_stmt_for_no(w_id, d_id, c_id):
+    ret_stmts = []
+    ret_stmts.append("SELECT w_tax FROM warehouse WHERE W_ID = {}".format(w_id))
+    ret_stmts.append("SELECT d_tax, d_next_o_id FROM district WHERE d_w_id = {} AND d_id = {} FOR UPDATE".format(w_id, d_id))
+    ret_stmts.append("SELECT c_discount, c_last, c_credit FROM customer WHERE c_w_id = {} AND c_d_id = {} AND c_id = {}".format(w_id, d_id, c_id))
+    ret_stmts.append("UPDATE district SET d_next_o_id = d_next_o_id + 1 WHERE d_w_id = {} AND d_id = {}".format(w_id, d_id))
+    ret_stmts.append("INSERT INTO orders (o_id, o_d_id, o_w_id, o_c_id, o_entry_d, o_ol_cnt, o_all_local) VALUES ({}, {}, {}, {}, {}, {}, {})".format(w_id, d_id))
+
+    pass

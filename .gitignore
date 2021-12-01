@@ -4,3 +4,4 @@ run.sh
 result
 env_generator/N*
 .DS_Store
+psycopg_test.py

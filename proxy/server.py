@@ -1,6 +1,5 @@
 import falcon
 import sys
-import config
 sys.dont_write_bytecode = True
 
 app = falcon.App()
@@ -43,6 +42,9 @@ app.add_route("/localload_TPCC", TPCCLoadLocal())
 
 from common.tpcc_load_customer import TPCCLoadCustomer
 app.add_route("/customerload_TPCC", TPCCLoadCustomer())
+
+from common.tpcc import TPCC
+app.add_route("/tpcc", TPCC())
 
 if __name__ == "__main__":
     from wsgiref.simple_server import *

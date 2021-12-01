@@ -1,4 +1,3 @@
-import json
 import dejimautils
 import tpccutils
 import config
@@ -22,6 +21,7 @@ class TPCCLoadLocal(object):
             warehouse_num = peer_num // 10 + 1
         else:
             warehouse_num = int(peer_num / 10)
+        config.warehouse_num = warehouse_num
 
         # load
         print("load start")

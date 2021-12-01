@@ -17,12 +17,6 @@ class TPCCLoadCustomer(object):
                 resp.text = msg
                 return
 
-        peer_num = int(params['peer_num'])
-        if peer_num % 10 != 0:
-            warehouse_num = peer_num // 10 + 1
-        else:
-            warehouse_num = int(peer_num / 10)
-
         # load
         print("load start")
 
