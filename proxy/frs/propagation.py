@@ -45,6 +45,7 @@ class FRSPropagation(object):
                             tx.cur.execute("SELECT * FROM bt WHERE id={} FOR UPDATE NOWAIT".format(delete['id']))
             tx.cur.execute(stmt)
         except Exception as e:
+            print(e)
             resp.text = json.dumps({"result": "Nak", "info": e.__class__.__name__})
             return
 

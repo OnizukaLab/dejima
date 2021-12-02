@@ -4,13 +4,13 @@
       "Peer2",
       "Peer1"
     ],
-    "d2_3": [
+    "d1_3": [
       "Peer3",
-      "Peer2"
+      "Peer1"
     ],
-    "d3_4": [
+    "d2_4": [
       "Peer4",
-      "Peer3"
+      "Peer2"
     ],
     "d2_5": [
       "Peer5",

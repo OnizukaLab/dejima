@@ -50,7 +50,7 @@ def doTPCC_PAY_2pl():
                 lineages.append(lineage)
                 miss_flag = False
         else:
-            tx.cur.execute("SELECT c_lineage FROM customer WHERE c_w_id = {} AND c_d_id = {} AND c_last = '{}' ORDER BY c_first FOR SHARE NOWAIT".format(c_w_id, c_d_id, c_last))
+            tx.cur.execute("SELECT c_lineage FROM customer WHERE c_w_id = {} AND c_d_id = {} AND c_last = '{}' ORDER BY c_first FOR UPDATE NOWAIT".format(c_w_id, c_d_id, c_last))
             all_records = tx.cur.fetchall()
             if len(all_records) != 0:
                 idx = math.ceil(len(all_records) / 2)
@@ -107,7 +107,6 @@ def doTPCC_PAY_2pl():
 
     except Exception as e:
         # abort during local execution
-        dejimautils.release_lock_request(global_xid) 
         tx.abort()
         del config.tx_dict[global_xid]
         return False
@@ -138,7 +137,6 @@ def doTPCC_PAY_2pl():
 
     except Exception as e:
         # abort during getting BIRDS result
-        dejimautils.release_lock_request(global_xid) 
         tx.abort()
         del config.tx_dict[global_xid]
         return False

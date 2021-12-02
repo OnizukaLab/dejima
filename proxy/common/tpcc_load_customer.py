@@ -30,8 +30,8 @@ class TPCCLoadCustomer(object):
 
         # execution
         try:
-            w_id = int(config.peer_name.strip("Peer")) // 10 + 1
-            d_id = int(config.peer_name.strip("Peer")) % 10
+            w_id = (int(config.peer_name.strip("Peer")) - 1) // 10 + 1
+            d_id = (int(config.peer_name.strip("Peer")) - 1) % 10 + 1
             c_stmt, h_stmt = tpccutils.get_loadstmt_for_customer_history(w_id, d_id)
             tx.cur.execute(c_stmt)
             tx.cur.execute(h_stmt)
