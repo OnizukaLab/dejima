@@ -92,14 +92,14 @@ def doTPCC_PAY_2pl():
             idx = math.ceil(len(all_records) / 2)
             c_id, c_first, c_middle, c_last, c_street_1, c_street_2, c_city, c_state, c_zip, c_phone, c_since, c_credit, c_credit_lim, c_discount, c_balance = all_records[idx-1]
 
-        tx.cur.execute("UPDATE customer SET c_balance = c_balance + {}, c_ytd_payment = c_ytd_payment + {}, c_payment_cnt = c_payment_cnt + 1 WHERE c_w_id = {} AND c_d_id = {} AND c_id = {}".format(h_amount, h_amount, c_w_id, c_d_id, c_id))
-
         if c_credit == "BC":
             tx.cur.execute("SELECT c_data FROM customer WHERE c_w_id = {} AND c_d_id = {} AND c_id = {}".format(c_w_id, c_d_id, c_id))
             c_data, *_ = tx.cur.fetchone()
             c_data = "{} {} {} {} {} {} | ".format(c_id, c_d_id, c_w_id, d_id, w_id, h_amount) + c_data
             c_data = c_data[0:500]
-            tx.cur.execute("UPDATE customer SET c_data = '{}' WHERE c_w_id = {} AND c_d_id = {} AND c_id = {}".format(c_data, c_w_id, c_d_id, c_id))
+            tx.cur.execute("UPDATE customer SET c_balance = c_balance - {}, c_ytd_payment = c_ytd_payment + {}, c_payment_cnt = c_payment_cnt + 1, c_data = '{}' WHERE c_w_id = {} AND c_d_id = {} AND c_id = {}".format(h_amount, h_amount, c_data, c_w_id, c_d_id, c_id))
+        else:
+            tx.cur.execute("UPDATE customer SET c_balance = c_balance - {}, c_ytd_payment = c_ytd_payment + {}, c_payment_cnt = c_payment_cnt + 1 WHERE c_w_id = {} AND c_d_id = {} AND c_id = {}".format(h_amount, h_amount, c_w_id, c_d_id, c_id))
 
         h_data = w_name + "    " + d_name
         tx.cur.execute("INSERT INTO history (h_c_id, h_c_d_id, h_c_w_id, h_d_id, h_w_id, h_date, h_amount, h_data) VALUES ({}, {}, {}, {}, {}, '{}', {}, '{}')".format(c_id, c_d_id, c_w_id, d_id, w_id, h_date, h_amount, h_data))
