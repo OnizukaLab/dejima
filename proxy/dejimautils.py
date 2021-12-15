@@ -135,7 +135,7 @@ def convert_to_sql_from_json(json_data):
             if not value and value != 0: continue
             if column=='txid': continue
             if type(value) is str:
-                value=value.strip() # Note: value contains strange Tabs
+                #value=value.strip() # Note: value contains strange Tabs
                 where += "{}='{}' AND ".format(column, value)
             else:
                 where += "{}={} AND ".format(column, value)
@@ -151,7 +151,7 @@ def convert_to_sql_from_json(json_data):
             if not value and value != 0:
                 values += "NULL, "
             elif type(value) is str:
-                value=value.strip() # Note: value contains strange Tabs
+                #value=value.strip() # Note: value contains strange Tabs
                 values += "'{}', ".format(value)
             else:
                 values += "{}, ".format(value)

@@ -5,7 +5,6 @@ class Tx:
     def __init__(self, global_xid):
         self.global_xid = global_xid
         self.db_conn = pool.getconn(key=global_xid)
-        self.db_conn.rollback()
         self.child_peers = []
         self.cur = self.db_conn.cursor(cursor_factory=DictCursor)
         self.propagation_cnt = 0
