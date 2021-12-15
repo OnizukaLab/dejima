@@ -10,13 +10,13 @@ class Tx:
         self.propagation_cnt = 0
     
     def commit(self):
-        self.db_conn.commit()
         self.cur.close()
+        self.db_conn.commit()
         pool.putconn(self.db_conn)
 
     def abort(self):
-        self.db_conn.rollback()
         self.cur.close()
+        self.db_conn.rollback()
         pool.putconn(self.db_conn)
 
     def extend_childs(self, target_peers):
